@@ -2,6 +2,14 @@ import { app, BrowserWindow, shell, ipcMain } from 'electron'
 import { release } from 'node:os'
 import { join } from 'node:path'
 
+
+import { displayFactory } from './adapters/back-display';
+import { ElectronBackDisplayAdapter } from './adapters/back-display/electron-adapter';
+import { cashDrawerFactory } from './adapters/cash-drawer';
+import { ElectronCashDrawerAdapter } from './adapters/cash-drawer/electron-adapter';
+import { BackDisplay } from './core/back-display';
+import { CashDrawer } from './core/cash-drawer';
+
 // The built directory structure
 //
 // ├─┬ dist-electron
@@ -75,7 +83,15 @@ async function createWindow() {
   // win.webContents.on('will-navigate', (event, url) => { }) #344
 }
 
-app.whenReady().then(createWindow)
+const addPosEvents = () => {
+  const cd: CashDrawer = cashDrawerFactory('log');
+  new ElectronCashDrawerAdapter(cd);
+
+  const bd: BackDisplay = displayFactory('log');
+  new ElectronBackDisplayAdapter(bd);
+};
+
+app.whenReady().then(createWindow).then(addPosEvents);
 
 app.on('window-all-closed', () => {
   win = null
